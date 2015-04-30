@@ -1,0 +1,11 @@
+node_modules/
+build/
+*.iml
+*.log
+.DS_Store
+.grunt
+_SpecRunner.html
+dist/
+logs/
+*.zip
+.idea
