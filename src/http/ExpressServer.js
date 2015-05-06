@@ -1,7 +1,4 @@
-var _ = require('lodash'),
-	bodyParser = require('body-parser'),
-	path = require('path'),
-	Logger = require('../lib/Logger');
+var HttpEntrypointResource = require('./HttpEntrypointResource');
 
 /**
  * Utility for creating Express servers.
@@ -14,27 +11,14 @@ function ExpressServer(config, express) {
 	this.config = config;
 }
 
-ExpressServer.prototype.create = function () {
-	var server = this.express();
+ExpressServer.prototype.create = function() {
+	var express = this.express();
+	this._httpServer(express);
+	return express;
+};
 
-	server.set('views', path.join(__dirname, '../../' + this.config.getViewPath()));
-
-	var parser = bodyParser.json({limit: '50mb'});
-	server.use(function (req, res, next) {
-		if (_.contains(req.url, '/proxy/')) {
-			next();
-		} else {
-			parser(req, res, next);
-		}
-	});
-
-	var httpEntrypoint = require('./HttpEntrypointResource');
-	server.use('/', httpEntrypoint);
-	var cons = require('consolidate');
-	server.engine('html', cons.mustache);
-	server.set('view engine', 'html');
-
-	return server;
+ExpressServer.prototype._httpServer = function(express) {
+	new HttpEntrypointResource().applyTo(express);
 };
 
 module.exports = ExpressServer;

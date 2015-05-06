@@ -1,12 +1,16 @@
-var express = require('express')(),
-	path = require('path');
+var path = require('path');
 
-express.get('/', function(req, res) {
-	res.send('blog node server');
-});
+function HttpEntrypointResource() {
+}
 
-express.get('/blog', function(req, res) {
-	res.sendFile(path.join(__dirname, '../../apps/views/', 'index.html'));
-});
+HttpEntrypointResource.prototype.applyTo = function(express) {
+	express.get('/', function(req, res) {
+		res.send('blog node server');
+	});
 
-module.exports = express;
+	express.get('/blog', function(req, res) {
+		res.sendFile(path.join(__dirname, '../../apps/views/', 'index.html'));
+	});
+};
+
+module.exports = HttpEntrypointResource;

@@ -6,44 +6,73 @@ var express = require('express'),
 	Configuration = require('./src/Configuration'),
 	ExpressServer = require('./src/http/ExpressServer');
 
+function app() {
+	this.config = null;
+	this.server = null;
+}
 
-var config = new Configuration.load(__dirname);
+app.prototype.init = function() {
+	this.config = new Configuration.load(__dirname);
+	this.server = new ExpressServer(this.config, express).create();
+	this._setting();
+	return this.server;
+};
 
-var server = new ExpressServer(config, express);
-var app = server.create();
+app.prototype._setting = function() {
+	this.server.use(logger('dev'));
+	this.server.use(bodyParser.json());
+	this.server.use(bodyParser.urlencoded({ extended: false }));
+	this.server.use(cookieParser());
+	this.server.use(require('less-middleware')(path.join(__dirname, this.config.getViewPath())));
 
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(require('less-middleware')(path.join(__dirname, config.getViewPath())));
+	this.server.set('views', path.join(__dirname, '../../' + this.config.getViewPath()));
+	var cons = require('consolidate');
+	this.server.engine('html', cons.mustache);
+	this.server.set('view engine', 'html');
 
-app.use(function(req, res, next) {
-	var err = new Error('Not Found');
-	err.status = 404;
-	next(err);
-});
+	this.server.use(function(req, res, next) {
+		var err = new Error('Not Found');
+		err.status = 404;
+		next(err);
+	});
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-	app.use(function(err, req, res, next) {
+	// development error handler
+	if (this.server.get('env') === 'development') {
+		this.server.use(function(err, req, res, next) {
+			res.status(err.status || 500);
+			res.render('error', {
+				message: err.message,
+				error: err
+			});
+		});
+	}
+
+	// production error handler
+	this.server.use(function(err, req, res, next) {
 		res.status(err.status || 500);
 		res.render('error', {
 			message: err.message,
-			error: err
+			error: {}
 		});
 	});
-}
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-	res.status(err.status || 500);
-	res.render('error', {
-		message: err.message,
-		error: {}
-	});
-});
+};
+
+app.prototype.normalizePort = function() {
+	var val = process.env.PORT || this.config.getPort();
+	var port = parseInt(val, 10);
+
+	if (isNaN(port)) {
+		// named pipe
+		return val;
+	}
+
+	if (port >= 0) {
+		// port number
+		return port;
+	}
+
+	return false;
+};
 
 module.exports = app;

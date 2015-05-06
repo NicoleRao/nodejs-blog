@@ -1,37 +1,15 @@
-var	http = require('http'),
-	debug = require('debug')('nodejs-blog:server'),
+var http = require('http'),
 	app = require('../app.js');
 
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
+var appServer = new app();
+var express = appServer.init();
+var port = appServer.normalizePort();
+express.set('port', port);
 
-var server = http.createServer(app);
-server.listen(port, function() {
-
-});
+var server = http.createServer(express);
+server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
-
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-	var port = parseInt(val, 10);
-
-	if (isNaN(port)) {
-		// named pipe
-		return val;
-	}
-
-	if (port >= 0) {
-		// port number
-		return port;
-	}
-
-	return false;
-}
 
 /**
  * Event listener for HTTP server "error" event.

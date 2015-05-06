@@ -1,7 +1,7 @@
 {
-	"host-path": "http://localhost:3000",
-	"apppath": "apps",
-	"viewpath": "apps/views",
+	"host": "http://localhost:3000",
+	"apps": "apps",
+	"views": "apps/views",
 	"port": "3000",
 	"log": {
 		"path":"./logs"
